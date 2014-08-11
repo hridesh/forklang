@@ -14,6 +14,7 @@ grammar ForkLang;
         | multexp 
         | divexp
         | letexp
+        | defineexp //New for definelang
         | lambdaexp //New for funclang
         | callexp //New for funclang
         | ifexp //New for funclang
@@ -24,6 +25,7 @@ grammar ForkLang;
         | refexp //New for reflang
         | derefexp //New for reflang
         | assignexp //New for reflang
+        | forkexp //New for forklang
         ;
  
  varexp  : 
@@ -66,6 +68,13 @@ grammar ForkLang;
  		'(' Let 
  			'(' ( '(' Identifier exp ')' )+  ')'
  			exp 
+ 			')' 
+ 		;
+
+ defineexp  :
+ 		'(' Define 
+ 			Identifier
+ 			exp
  			')' 
  		;
 
@@ -137,9 +146,17 @@ grammar ForkLang;
  		    ')' 
  		;
 
+ forkexp  : 
+ 		'(' Fork 
+ 		    exp 
+ 		    exp 
+ 		    ')' 
+ 		;
+
 // Keywords
 
  Let : 'let' ;
+ Define : 'define' ;
  Lambda : 'lambda' ;
  If : 'if' ; 
  Less : '<' ;
@@ -148,7 +165,8 @@ grammar ForkLang;
  Letrec : 'letrec' ;
  Ref : 'ref' ; 
  Deref : 'deref' ;
- Assign : 'set!' ; 
+ Assign : 'set!' ;
+ Fork : 'fork' ;
   
  // Lexical Specification of this Programming Language
  //  - lexical specification rules start with uppercase

@@ -1,34 +1,24 @@
 package forklang;
-import static forklang.AST.*;
-import static forklang.Value.*;
 
 import java.util.List;
 import java.util.ArrayList;
 
-import forklang.AST.AddExp;
-import forklang.AST.Const;
-import forklang.AST.DivExp;
-import forklang.AST.ErrorExp;
-import forklang.AST.MultExp;
-import forklang.AST.Program;
-import forklang.AST.SubExp;
-import forklang.AST.VarExp;
-import forklang.AST.Visitor;
-import forklang.Env.EmptyEnv;
-import forklang.Env.ExtendEnv;
-import forklang.Env.ExtendEnvRec;
+import static forklang.AST.*;
+import static forklang.Value.*;
+import forklang.Env.*;
 import forklang.Store.Store32Bit;
 
 public class Evaluator implements Visitor<Value> {
 	
 	Printer.ExpToStringConverter ts = new Printer.ExpToStringConverter();
+
+	final GlobalEnv global_env = new GlobalEnv(); //New for definelang
 	
 	Store store = Store32Bit.get();
 	
 	public Value valueOf(Program p) {
-		Env env = new EmptyEnv();
 		// Value of a program in this language is the value of the expression
-		return (Value) this.visit(p, env);
+		return (Value) this.visit(p, global_env);
 	}
 	
 	@Override
@@ -101,6 +91,15 @@ public class Evaluator implements Visitor<Value> {
 			new_env = new ExtendEnv(new_env, names.get(index), values.get(index));
 
 		return (Value) e.body().accept(this, new_env);		
+	}	
+	
+	@Override
+	public Value visit(DefineExp e, Env env) { // New for definelang.
+		String name = e.name();
+		Exp value_exp = e.value_exp();
+		Value value = (Value) value_exp.accept(this, env);
+		env.define(name,value);
+		return new Value.Unit();		
 	}	
 
 	@Override
@@ -204,4 +203,8 @@ public class Evaluator implements Visitor<Value> {
 		return assign_val;
 	}	
 	
+	@Override 
+	public Value visit(ForkExp e, Env env) { // New for forklang
+		return new Value.Int(42);
+	}
 }

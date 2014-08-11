@@ -27,11 +27,12 @@ public class Reader {
 	private static final int 
 		program = 0, exp = 1, varexp = 2, numexp = 3,
 		addexp = 4, subexp = 5, multexp = 6, divexp = 7,
-		letexp = 8, 
-		lambdaexp = 9, callexp = 10, // New expressions for the funclang language.
-		ifexp = 11, lessexp = 12, equalexp = 13, greaterexp = 14, // Other expressions for convenience.
-		letrecexp = 15, // New expression for the letrec language.
-		refexp = 16, derefexp = 17, assignexp = 18 // New expression for this language.
+		letexp = 8, defineexp = 9, // New expressions for the varlang language.
+		lambdaexp = 10, callexp = 11, // New expressions for the funclang language.
+		ifexp = 12, lessexp = 13, equalexp = 14, greaterexp = 15, // Other expressions for convenience.
+		letrecexp = 16, // New expression for the letrec language.
+		refexp = 17, derefexp = 18, assignexp = 19, // New expression for the reflang language.
+		forkexp = 20 // New expression(s) for the forklang language.
 		;
 
 	private static final boolean DEBUG = false;
@@ -145,6 +146,7 @@ public class Reader {
 				case multexp: return new AST.MultExp(visitChildrenHelper(node));
 				case divexp: return new AST.DivExp(visitChildrenHelper(node));
 				case letexp: return convertLetExp(node);
+				case defineexp: return convertDefineExp(node);
 				case lambdaexp: return convertLambdaExp(node);
 				case callexp: return convertCallExp(node);
 				case ifexp: return convertIfExp(node);
@@ -155,6 +157,7 @@ public class Reader {
 				case refexp: return convertRefExp(node);
 				case derefexp: return convertDerefExp(node);
 				case assignexp: return convertAssignExp(node);
+				case forkexp: return convertForkExp(node);
 				case program: 
 				default: 
 					System.out.println("Conversion error (from parse tree to AST): found unknown/unhandled case " + parser.getRuleNames()[node.getRuleContext().getRuleIndex()]);
@@ -181,6 +184,17 @@ public class Reader {
 			AST.Exp body = node.getChild(index++).accept(this);
 			expect(node,index++, ")");
 			return new AST.LetExp(names,value_exps,body);
+		}
+
+		/**
+		 *  Syntax: (define name value_exp)
+		 */  
+		private AST.Exp convertDefineExp(RuleNode node){
+			int index = expect(node,0,"(", "define");
+			String name = expectString(node, index++, 1)[0];
+			AST.Exp value_exp = expectExp(node, index++, 1)[0];
+			expect(node,index++, ")");
+			return new AST.DefineExp(name,value_exp);
 		}
 		
 		/**
@@ -309,6 +323,17 @@ public class Reader {
 			AST.Exp rhs_exp = node.getChild(index++).accept(this);
 			expect(node,index++, ")");
 			return new AST.AssignExp(lhs_exp, rhs_exp);
+		}
+
+		/**
+		 *  Syntax: ( fork lhs_exp rhs_exp )
+		 */
+		private AST.Exp convertForkExp(RuleNode node){
+			int index = expect(node,0,"(", "fork");
+			AST.Exp lhs_exp = node.getChild(index++).accept(this);
+			AST.Exp rhs_exp = node.getChild(index++).accept(this);
+			expect(node,index++, ")");
+			return new AST.ForkExp(lhs_exp, rhs_exp);
 		}
 
 		public AST.Exp visitTerminal(TerminalNode node) {

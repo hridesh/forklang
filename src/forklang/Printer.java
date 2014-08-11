@@ -73,6 +73,13 @@ public class Printer {
 			return result + ")";
 		}
 		
+		public String visit(AST.DefineExp e, Env env) {
+			String result = "(define ";
+			result += e.name() + " ";
+			result += e.value_exp().accept(this, env);
+			return result + ")";
+		}
+		
 		public String visit(AST.LambdaExp e, Env env) {
 			String result = "(lambda ( ";
 			for(String formal : e.formals()) 
@@ -148,6 +155,13 @@ public class Printer {
 
 		public String visit(AST.AssignExp e, Env env) {
 			String result = "(set! ";
+			result += e.lhs_exp().accept(this, env) + " ";
+			result += e.rhs_exp().accept(this, env);
+			return result + ")";
+		}
+		
+		public String visit(AST.ForkExp e, Env env) {
+			String result = "(fork ";
 			result += e.lhs_exp().accept(this, env) + " ";
 			result += e.rhs_exp().accept(this, env);
 			return result + ")";
