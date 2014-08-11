@@ -205,6 +205,7 @@ public class Evaluator implements Visitor<Value> {
 	
 	@Override 
 	public Value visit(ForkExp e, Env env) { // New for forklang
+	        //TODO: Finish this case.
 		return new Value.Int(42);
 	}
 }
