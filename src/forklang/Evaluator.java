@@ -4,11 +4,8 @@ import static forklang.Value.*;
 import static forklang.Heap.*;
 import forklang.Env.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 import java.io.File;
 
 public class Evaluator implements Visitor<Value> {
@@ -19,8 +16,6 @@ public class Evaluator implements Visitor<Value> {
 	
     Heap heap = null; //New for reflang
     
-    Map<RefVal, ReentrantLock> lockset = new HashMap<RefVal, ReentrantLock>();
-
     
     Value valueOf(Program p) {
     	heap = new Heap16Bit();
@@ -370,7 +365,7 @@ public class Evaluator implements Visitor<Value> {
 	}
 
 
-	static class EvalThread extends Thread{
+	static class EvalThread extends Thread {
 		Env env;
 		Exp exp;
 		Evaluator evaluator;
@@ -387,6 +382,11 @@ public class Evaluator implements Visitor<Value> {
 		}
 		
 		public Value value(){
+			try {
+				this.join();
+			} catch (InterruptedException e) {
+				return new Value.DynamicError(e.getMessage());
+			}
 			return value;
 		}
 	}
@@ -394,75 +394,40 @@ public class Evaluator implements Visitor<Value> {
 
 	@Override
 	public Value visit(ForkExp e, Env env) {
-		System.out.println("Evaluation of fork expression");
         Exp fst = e.fst_exp();
         Exp snd = e.snd_exp();
         EvalThread fst_thread = new EvalThread(env, fst, this);
         EvalThread snd_thread = new EvalThread(env, snd, this);
         fst_thread.start();
         snd_thread.start();
-        try {
-			fst_thread.join();
-	        snd_thread.join();
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		}
         Value fst_val = fst_thread.value();
         Value snd_val = snd_thread.value();
-        
-        if (fst_val instanceof DynamicError)
-        	return fst_val;
-        else if (snd_val instanceof DynamicError)
-        	return snd_val;
-        	
 		return new Value.PairVal(fst_val, snd_val);	
 	}
 
 	@Override
 	public Value visit(LockExp e, Env env) {
-		System.out.println("Evaluation of lock");
         Exp value_exp = e.value_exp();
         Object result = value_exp.accept(this, env);
-        System.out.println("result:" + result);
 		if(!(result instanceof Value.RefVal))
-			return new Value.DynamicError("Expression is not a location in expression " +  ts.visit(e, env));
+			return new Value.DynamicError("Non-reference values cannot be locked in expression " +  ts.visit(e, env));
         Value.RefVal loc = (Value.RefVal) result;
-        synchronized (this) {
-	        if(lockset.containsKey(loc)){
-	        	System.out.println("Lock found");
-	        	lockset.get(loc).lock();
-	        }
-	        else{
-	        	System.out.println("creation of new lock");
-	        	ReentrantLock lock = new ReentrantLock();
-	        	lockset.put(loc, lock);
-	        	lock.lock();
-	        }
-       }
+        loc.lock();
         return loc;
 	}
 
 	
-
 	@Override
 	public Value visit(UnlockExp e, Env env) {
-		System.out.println("Evaluation of unlock");
         Exp value_exp = e.value_exp();
         Object result = value_exp.accept(this, env);
 		if(!(result instanceof Value.RefVal))
-			return new Value.DynamicError("Expression is not a location in expression " +  ts.visit(e, env));
+			return new Value.DynamicError("Non-reference values cannot be unlocked  in expression " +  ts.visit(e, env));
         Value.RefVal loc = (Value.RefVal) result;
-        synchronized(this){
-            ReentrantLock l = lockset.get(loc);
-            if(l != null)
-            	try{
-            		lockset.get(loc).unlock();
-            		lockset.remove(loc);
-            	} catch(IllegalMonitorStateException ex){
-            		return new Value.DynamicError("Can not unlock a lock locked by another thread" +  ts.visit(e, env));
-            	}
-            else
-            	return new Value.DynamicError("Can not unlock an unlocked lock" +  ts.visit(e, env));
+        try{
+        	loc.unlock();
+        } catch(IllegalMonitorStateException ex){
+        	return new Value.DynamicError("Lock held by another thread " +  ts.visit(e, env));
         }
 		return loc;
 	}

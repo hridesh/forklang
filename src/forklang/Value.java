@@ -1,15 +1,18 @@
 package forklang;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import forklang.AST.*;
+
 
 public interface Value {
 	public String tostring();
 
 
-	static class RefVal implements Value { //New in the reflang
-    	private int _loc = -1; 
+	static class RefVal extends ReentrantLock implements Value { //New in the reflang
+		private static final long serialVersionUID = 1L;
+		private int _loc = -1; 
         public RefVal(int loc) { _loc = loc; }
         public String tostring() {
             return "loc:" + this._loc;
