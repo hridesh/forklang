@@ -12,7 +12,7 @@ import forklang.AST.*;
  */
 public class Interpreter {
 	public static void main(String[] args) {
-		System.out.println("RefLang: Type a program to evaluate and press the enter key,\n" + 
+		System.out.println("ForkLang: Type a program to evaluate and press the enter key,\n" + 
 				"e.g. (ref 342) \n" + 
 				"or try (deref (ref 342)) \n" +
 				"or try (let ((class (ref 342))) (deref class)) \n" +
