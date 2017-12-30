@@ -17,12 +17,12 @@ public interface Heap {
 	Value free (Value.RefVal value);
 
 	static public class Heap16Bit implements Heap {
-		private static final int HEAP_SIZE = 65_536;
+		static final int HEAP_SIZE = 65_536;
 		
-		private Value[] _rep = new Value[HEAP_SIZE];
-		private int index = 0;
+		Value[] _rep = new Value[HEAP_SIZE];
+		int index = 0;
 		
-		public synchronized Value ref (Value value) {
+		public Value ref (Value value) {
 			if(index >= HEAP_SIZE)
 				return new Value.DynamicError("Out of memory error");
 			Value.RefVal new_loc = new Value.RefVal(index);
@@ -30,7 +30,7 @@ public interface Heap {
 			return new_loc;
 		}
 
-		public synchronized Value deref (Value.RefVal loc) {
+		public Value deref (Value.RefVal loc) {
 			try {
 				return _rep[loc.loc()];
 			} catch (ArrayIndexOutOfBoundsException e) {
@@ -38,7 +38,7 @@ public interface Heap {
 			}
 		}
 
-		public synchronized Value setref (Value.RefVal loc, Value value) {
+		public Value setref (Value.RefVal loc, Value value) {
 			try {
 				return _rep[loc.loc()] = value;
 			} catch (ArrayIndexOutOfBoundsException e) {
@@ -46,7 +46,7 @@ public interface Heap {
 			}
 		}
 
-		public synchronized Value free (Value.RefVal loc) {
+		public Value free (Value.RefVal loc) {
 			try {
 				_rep[loc.loc()] = null;
 				//REMARK: students should add this location to free list.
