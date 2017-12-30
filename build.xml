@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<project name="lang" default="parser">
+
+	<!-- ANTLR version -->
+	<property name="antlr.version" value="4.5" />
+
+	<!-- ForkLang parser -->
+	<target name="forklang-check-parser">
+		<condition property="forklang.parser.uptodate">
+			<and>
+				<uptodate srcfile="src/forklang/ForkLang.g" targetfile="src/forklang/parser/ForkLangParser.java" />
+				<uptodate srcfile="src/forklang/ForkLang.g" targetfile="src/forklang/parser/ForkLangLexer.java" />
+				<uptodate srcfile="src/forklang/ForkLang.g" targetfile="src/forklang/parser/ForkLangListener.java" />
+			</and>
+		</condition>
+	</target>
+
+	<target name="forklang" depends="forklang-check-parser" unless="forklang.parser.uptodate">
+		<java jar="lib/antlr-${antlr.version}-complete.jar" dir="src/forklang/" fork="true" failonerror="true">
+			<arg value="-o" />
+			<arg value="parser/" />
+			<arg value="-no-listener" />
+			<arg value="-package" />
+			<arg value="forklang.parser; import static forklang.AST.*" />
+			<arg value="ForkLang.g" />
+		</java>
+	</target>
+
+	<target name="parser" depends="forklang" >
+	</target>
+	
+</project>
