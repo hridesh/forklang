@@ -5,7 +5,6 @@ import java.util.List;
 
 import forklang.Env;
 
-
 /**
  * This class hierarchy represents expressions in the abstract syntax tree
  * manipulated by this interpreter.
@@ -59,9 +58,9 @@ public interface AST {
 		}
 	}
 
-	public static class Unit extends Exp {
+	public static class UnitExp extends Exp {
 		
-		public Unit() {}
+		public UnitExp() {}
 
 		public Object accept(Visitor visitor, Env env) {
 			return visitor.visit(this, env);
@@ -69,10 +68,10 @@ public interface AST {
 
 	}
 
-	public static class Const extends Exp {
+	public static class NumExp extends Exp {
 		double _val;
 
-		public Const(double v) {
+		public NumExp(double v) {
 			_val = v;
 		}
 
@@ -85,10 +84,10 @@ public interface AST {
 		}
 	}
 
-	public static class StrConst extends Exp {
+	public static class StrExp extends Exp {
 		String _val;
 
-		public StrConst(String v) {
+		public StrExp(String v) {
 			_val = v;
 		}
 
@@ -101,10 +100,10 @@ public interface AST {
 		}
 	}
 
-	public static class BoolConst extends Exp {
+	public static class BoolExp extends Exp {
 		boolean _val;
 
-		public BoolConst(boolean v) {
+		public BoolExp(boolean v) {
 			_val = v;
 		}
 
@@ -551,6 +550,111 @@ public interface AST {
 		}
 	}
 
+    public static class IsBooleanExp extends Exp {
+    	private Exp e;
+    	public IsBooleanExp(Exp e){
+    		this.e=e;
+    	}
+    	Exp exp(){
+    		return this.e;
+    	}
+    	public Object accept(Visitor visitor, Env env) {
+    		return visitor.visit(this, env);
+    	}
+    }
+    
+    public static class IsNumberExp extends Exp {
+    	private Exp e;
+    	public IsNumberExp(Exp e){
+    		this.e=e;
+    	}
+    	Exp exp(){
+    		return this.e;
+    	}
+    	public Object accept(Visitor visitor, Env env) {
+    		return visitor.visit(this, env);
+    	}
+    }
+    
+    public static class IsStringExp extends Exp {
+    	private Exp e;
+    	public IsStringExp(Exp e){
+    		this.e=e;
+    	}
+    	Exp exp(){
+    		return this.e;
+    	}
+    	public Object accept(Visitor visitor, Env env) {
+    		return visitor.visit(this, env);
+    	}
+    }
+    
+    public static class IsProcedureExp extends Exp {
+    	private Exp e;
+    	public IsProcedureExp(Exp e){
+    		this.e=e;
+    	}
+    	Exp exp(){
+    		return this.e;
+    	}
+    	public Object accept(Visitor visitor, Env env) {
+    		return visitor.visit(this, env);
+    	}
+    }
+    
+    public static class IsUnitExp extends Exp {
+    	private Exp e;
+    	public IsUnitExp(Exp e){
+    		this.e=e;
+    	}
+    	Exp exp(){
+    		return this.e;
+    	}
+    	public Object accept(Visitor visitor, Env env) {
+    		return visitor.visit(this, env);
+    	}
+    }
+    
+    public static class IsPairExp extends Exp {
+    	private Exp e;
+    	public IsPairExp(Exp e){
+    		this.e=e;
+    	}
+    	Exp exp(){
+    		return this.e;
+    	}
+    	public Object accept(Visitor visitor, Env env) {
+    		return visitor.visit(this, env);
+    	}
+    }
+    
+    public static class IsListExp extends Exp {
+    	private Exp e;
+    	public IsListExp(Exp e){
+    		this.e=e;
+    	}
+    	Exp exp(){
+    		return this.e;
+    	}
+    	public Object accept(Visitor visitor, Env env) {
+    		return visitor.visit(this, env);
+    	}
+    }
+
+    public static class IsNullExp extends Exp {
+    	private Exp e;
+    	public IsNullExp(Exp e){
+    		this.e=e;
+    	}
+
+    	Exp exp(){
+    		return this.e;
+    	}
+    	public Object accept(Visitor visitor, Env env) {
+    		return visitor.visit(this, env);
+    	}
+    }
+
 	/**
 	 * Eval expression: evaluate the program that is _val
 	 * @author hridesh
@@ -785,38 +889,46 @@ public interface AST {
 	public interface Visitor <T> {
 		// This interface should contain a signature for each concrete AST node.
 		public T visit(AST.AddExp e, Env env);
-		public T visit(AST.Unit e, Env env);
-		public T visit(AST.Const e, Env env);
-		public T visit(AST.StrConst e, Env env);
-		public T visit(AST.BoolConst e, Env env);
+		public T visit(AST.UnitExp e, Env env);
+		public T visit(AST.NumExp e, Env env);
+		public T visit(AST.StrExp e, Env env);
+		public T visit(AST.BoolExp e, Env env);
 		public T visit(AST.DivExp e, Env env);
 		public T visit(AST.ErrorExp e, Env env);
 		public T visit(AST.MultExp e, Env env);
 		public T visit(AST.Program p, Env env);
 		public T visit(AST.SubExp e, Env env);
 		public T visit(AST.VarExp e, Env env);
-		public T visit(AST.LetExp e, Env env); // New for the varlang
-		public T visit(AST.DefineDecl d, Env env); // New for the definelang
-		public T visit(AST.ReadExp e, Env env); // New for the funclang
-		public T visit(AST.EvalExp e, Env env); // New for the funclang
-		public T visit(AST.LambdaExp e, Env env); // New for the funclang
-		public T visit(AST.CallExp e, Env env); // New for the funclang
-		public T visit(AST.LetrecExp e, Env env); // New for the funclang
-		public T visit(AST.IfExp e, Env env); // Additional expressions for convenience
-		public T visit(AST.LessExp e, Env env); // Additional expressions for convenience
-		public T visit(AST.EqualExp e, Env env); // Additional expressions for convenience
-		public T visit(AST.GreaterExp e, Env env); // Additional expressions for convenience
-		public T visit(AST.CarExp e, Env env); // Additional expressions for convenience
-		public T visit(AST.CdrExp e, Env env); // Additional expressions for convenience
-		public T visit(AST.ConsExp e, Env env); // Additional expressions for convenience
-		public T visit(AST.ListExp e, Env env); // Additional expressions for convenience
-		public T visit(AST.NullExp e, Env env); // Additional expressions for convenience
-		public T visit(AST.RefExp e, Env env); // New for the Reflang
-		public T visit(AST.DerefExp e, Env env); // New for the Reflang
-		public T visit(AST.AssignExp e, Env env); // New for the Reflang
-		public T visit(AST.FreeExp e, Env env); // New for the Reflang
-		public T visit(AST.ForkExp e, Env env); // New for the Forklang
-		public T visit(AST.LockExp e, Env env); // New for the Forklang
-		public T visit(AST.UnlockExp e, Env env); // New for the Forklang
+		public T visit(AST.LetExp e, Env env); 
+		public T visit(AST.DefineDecl d, Env env); 
+		public T visit(AST.ReadExp e, Env env); 
+		public T visit(AST.EvalExp e, Env env); 
+		public T visit(AST.LambdaExp e, Env env); 
+		public T visit(AST.CallExp e, Env env); 
+		public T visit(AST.LetrecExp e, Env env); 
+		public T visit(AST.IfExp e, Env env); 
+		public T visit(AST.LessExp e, Env env); 
+		public T visit(AST.EqualExp e, Env env); 
+		public T visit(AST.GreaterExp e, Env env); 
+		public T visit(AST.CarExp e, Env env); 
+		public T visit(AST.CdrExp e, Env env); 
+		public T visit(AST.ConsExp e, Env env); 
+		public T visit(AST.ListExp e, Env env); 
+		public T visit(AST.NullExp e, Env env); 
+        public T visit(AST.IsNullExp e, Env env); 
+        public T visit(AST.IsProcedureExp e, Env env); 
+        public T visit(AST.IsListExp e, Env env); 
+        public T visit(AST.IsPairExp e, Env env); 
+        public T visit(AST.IsUnitExp e, Env env); 
+        public T visit(AST.IsNumberExp e, Env env); 
+        public T visit(AST.IsStringExp e, Env env); 
+        public T visit(AST.IsBooleanExp e, Env env); 
+		public T visit(AST.RefExp e, Env env); 
+		public T visit(AST.DerefExp e, Env env); 
+		public T visit(AST.AssignExp e, Env env); 
+		public T visit(AST.FreeExp e, Env env);
+		public T visit(AST.ForkExp e, Env env); 
+		public T visit(AST.LockExp e, Env env); 
+		public T visit(AST.UnlockExp e, Env env); 
 	}	
 }
