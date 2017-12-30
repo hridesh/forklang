@@ -7,6 +7,7 @@ import forklang.Env.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.File;
+import java.io.IOException;
 
 public class Evaluator implements Visitor<Value> {
 	
@@ -14,18 +15,17 @@ public class Evaluator implements Visitor<Value> {
 
 	Env initEnv = initialEnv(); //New for definelang
 	
-    Heap heap = null; //New for reflang
+    Heap heap = new Heap16Bit(); //New for reflang
     
     
     Value valueOf(Program p) {
-    	heap = new Heap16Bit();
 		return (Value) p.accept(this, initEnv);
 	}
 	
 	@Override
 	public Value visit(AddExp e, Env env) {
 		List<Exp> operands = e.all();
-		int result = 0;
+		double result = 0;
 		for(Exp exp: operands) {
 			NumVal intermediate = (NumVal) exp.accept(this, env); // Dynamic type-checking
 			result += intermediate.v(); //Semantics of AddExp in terms of the target language.
@@ -34,22 +34,22 @@ public class Evaluator implements Visitor<Value> {
 	}
 	
 	@Override
-	public Value visit(Unit e, Env env) {
+	public Value visit(UnitExp e, Env env) {
 		return new UnitVal();
 	}
 
 	@Override
-	public Value visit(Const e, Env env) {
+	public Value visit(NumExp e, Env env) {
 		return new NumVal(e.v());
 	}
 
 	@Override
-	public Value visit(StrConst e, Env env) {
+	public Value visit(StrExp e, Env env) {
 		return new StringVal(e.v());
 	}
 
 	@Override
-	public Value visit(BoolConst e, Env env) {
+	public Value visit(BoolExp e, Env env) {
 		return new BoolVal(e.v());
 	}
 
@@ -132,7 +132,7 @@ public class Evaluator implements Visitor<Value> {
 		String name = e.name();
 		Exp value_exp = e.value_exp();
 		Value value = (Value) value_exp.accept(this, env);
-		initEnv = new ExtendEnv(initEnv, name, value);
+		((GlobalEnv) initEnv).extend(name, value);
 		return new Value.UnitVal();		
 	}	
 
@@ -155,36 +155,24 @@ public class Evaluator implements Visitor<Value> {
 			actuals.add((Value)exp.accept(this, env));
 		
 		List<String> formals = operator.formals();
-		if (formals.size()!=actuals.size())
+		
+		Env fun_env = operator.env();
+
+		if(operator.formals().contains("..."))
+		{
+			ListExp varargs = new ListExp(operands);			
+			fun_env = new ExtendEnv(fun_env, formals.get(0), (Value) varargs.accept(this, fun_env));
+			return (Value) operator.body().accept(this, fun_env);
+		}
+		else if (formals.size()!=actuals.size())
 			return new Value.DynamicError("Argument mismatch in call " + ts.visit(e, env));
 
-		Env closure_env = operator.env();
-		Env fun_env = appendEnv(closure_env, initEnv);
 		for (int index = 0; index < formals.size(); index++)
 			fun_env = new ExtendEnv(fun_env, formals.get(index), actuals.get(index));
 		
 		return (Value) operator.body().accept(this, fun_env);
 	}
-	
-	/* Helper for CallExp */
-	/***
-	 * Create an env that has bindings from fst appended to bindings from snd.
-	 * The order of bindings is bindings from fst followed by that from snd.
-	 * @param fst
-	 * @param snd
-	 * @return
-	 */
-	private Env appendEnv(Env fst, Env snd){
-		if(fst.isEmpty()) return snd;
-		if(fst instanceof ExtendEnv) {
-			ExtendEnv f = (ExtendEnv) fst;
-			return new ExtendEnv(appendEnv(f.saved_env(),snd), f.var(), f.val());
-		}
-		ExtendEnvRec f = (ExtendEnvRec) fst;
-		return new ExtendEnvRec(appendEnv(f.saved_env(),snd), f.names(), f.vals());
-	}
-	/* End: helper for CallExp */
-	
+		
 	@Override
 	public Value visit(IfExp e, Env env) { // New for funclang.
 		Object result = e.conditional().accept(this, env);
@@ -238,7 +226,7 @@ public class Evaluator implements Visitor<Value> {
 	}
 
 	@Override
-	public Value visit(ListExp e, Env env) { // New for funclang.
+	public Value visit(ListExp e, Env env) {
 		List<Exp> elemExps = e.elems();
 		int length = elemExps.size();
 		if(length == 0)
@@ -261,6 +249,56 @@ public class Evaluator implements Visitor<Value> {
 		return new BoolVal(val instanceof Value.Null);
 	}
 
+	@Override
+	public Value visit(IsListExp e, Env env) {
+		Value val = (Value) e.exp().accept(this, env);
+		return new BoolVal(val instanceof Value.PairVal &&
+				((Value.PairVal) val).isList() ||
+				val instanceof Value.Null);
+	}
+
+	@Override
+	public Value visit(IsPairExp e, Env env) {
+		Value val = (Value) e.exp().accept(this, env);
+		return new BoolVal(val instanceof Value.PairVal);
+	}
+
+	@Override
+	public Value visit(IsUnitExp e, Env env) {
+		Value val = (Value) e.exp().accept(this, env);
+		return new BoolVal(val instanceof Value.UnitVal);
+	}
+
+	@Override
+	public Value visit(IsProcedureExp e, Env env) {
+		Value val = (Value) e.exp().accept(this, env);
+		return new BoolVal(val instanceof Value.FunVal);
+	}
+
+	@Override
+	public Value visit(IsStringExp e, Env env) {
+		Value val = (Value) e.exp().accept(this, env);
+		return new BoolVal(val instanceof Value.StringVal);
+	}
+
+	@Override
+	public Value visit(IsNumberExp e, Env env) {
+		Value val = (Value) e.exp().accept(this, env);
+		return new BoolVal(val instanceof Value.NumVal);
+	}
+
+	@Override
+	public Value visit(IsBooleanExp e, Env env) {
+		Value val = (Value) e.exp().accept(this, env);
+		return new BoolVal(val instanceof Value.BoolVal);
+	}
+
+	@Override
+	public Value visit(IsNullExp e, Env env) {
+		Value val = (Value) e.exp().accept(this, env);
+		return new BoolVal(val instanceof Value.Null);
+	}
+
 	public Value visit(EvalExp e, Env env) {
 		StringVal programText = (StringVal) e.code().accept(this, env);
 		Program p = _reader.parse(programText.v());
@@ -269,8 +307,12 @@ public class Evaluator implements Visitor<Value> {
 
 	public Value visit(ReadExp e, Env env) {
 		StringVal fileName = (StringVal) e.file().accept(this, env);
-		String text = Reader.readFile("" + System.getProperty("user.dir") + File.separator + fileName.v());
-		return new StringVal(text);
+		try {
+			String text = Reader.readFile("" + System.getProperty("user.dir") + File.separator + fileName.v());
+			return new StringVal(text);
+		} catch (IOException exception) {
+			return new Value.DynamicError(exception.getMessage());
+		}
 	}
 	
 	@Override
@@ -320,24 +362,24 @@ public class Evaluator implements Visitor<Value> {
 	}
 
 	private Env initialEnv() {
-		Env initEnv = new EmptyEnv();
-
+		GlobalEnv initEnv = new GlobalEnv();
+		
 		/* Procedure: (read <filename>). Following is same as (define read (lambda (file) (read file))) */
 		List<String> formals = new ArrayList<>();
 		formals.add("file");
 		Exp body = new AST.ReadExp(new VarExp("file"));
 		Value.FunVal readFun = new Value.FunVal(initEnv, formals, body);
-		initEnv = new Env.ExtendEnv(initEnv, "read", readFun);
+		initEnv.extend("read", readFun);
 
 		/* Procedure: (require <filename>). Following is same as (define require (lambda (file) (eval (read file)))) */
 		formals = new ArrayList<>();
 		formals.add("file");
 		body = new EvalExp(new AST.ReadExp(new VarExp("file")));
 		Value.FunVal requireFun = new Value.FunVal(initEnv, formals, body);
-		initEnv = new Env.ExtendEnv(initEnv, "require", requireFun);
-
+		initEnv.extend("require", requireFun);
+		
 		/* Add new built-in procedures here */ 
-
+		
 		return initEnv;
 	}
 	
@@ -382,6 +424,7 @@ public class Evaluator implements Visitor<Value> {
         EvalThread snd_thread = new EvalThread(env, snd, this);
         fst_thread.start();
         snd_thread.start();
+      
         Value fst_val = fst_thread.value();
         Value snd_val = snd_thread.value();
 		return new Value.PairVal(fst_val, snd_val);	
