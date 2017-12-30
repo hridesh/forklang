@@ -71,7 +71,7 @@ public interface Value {
 	    	if(isList()) return listToString();
 	    	return "(" + _fst.tostring() + " " + _snd.tostring() + ")"; 
 	    }
-	    private boolean isList() {
+	    public boolean isList() {
 	    	if(_snd instanceof Value.Null) return true;
 	    	if(_snd instanceof Value.PairVal &&
 	    		((Value.PairVal) _snd).isList()) return true;
@@ -98,7 +98,6 @@ public interface Value {
 	}
 	static class DynamicError implements Value { 
 		private String message = "Unknown dynamic error.";
-		public DynamicError() { }
 		public DynamicError(String message) { this.message = message; }
 	    public String tostring() { return "" + message; }
 	}
