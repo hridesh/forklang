@@ -22,19 +22,19 @@ public class Printer {
 			return result + ")";
 		}
 		
-		public String visit(AST.Unit e, Env env) {
+		public String visit(AST.UnitExp e, Env env) {
 			return "unit";
 		}
 
-		public String visit(AST.Const e, Env env) {
+		public String visit(AST.NumExp e, Env env) {
 			return "" + e.v();
 		}
 		
-		public String visit(AST.StrConst e, Env env) {
+		public String visit(AST.StrExp e, Env env) {
 			return e.v();
 		}
 		
-		public String visit(AST.BoolConst e, Env env) {
+		public String visit(AST.BoolExp e, Env env) {
 			if(e.v()) return "#t";
 			return "#f";
 		}
@@ -179,6 +179,62 @@ public class Printer {
 			result += e.arg().accept(this, env);
 			return result + ")";
 		}
+
+		@Override
+        public String visit(IsListExp e, Env env) {
+                String result = "(list? ";
+                result += e.exp().accept(this, env);
+                return result + ")";
+        }
+
+        @Override
+        public String visit(IsPairExp e, Env env) {
+                String result = "(pair? ";
+                result += e.exp().accept(this, env);
+                return result + ")";
+        }
+
+        @Override
+        public String visit(IsUnitExp e, Env env) {
+                String result = "(unit? ";
+                result += e.exp().accept(this, env);
+                return result + ")";
+        }
+
+        @Override
+        public String visit(IsProcedureExp e, Env env) {
+                String result = "(procedure? ";
+                result += e.exp().accept(this, env);
+                return result + ")";
+        }
+
+        @Override
+        public String visit(IsStringExp e, Env env) {
+                String result = "(string? ";
+                result += e.exp().accept(this, env);
+                return result + ")";
+        }
+
+        @Override
+        public String visit(IsNumberExp e, Env env) {
+                String result = "(number? ";
+                result += e.exp().accept(this, env);
+                return result + ")";
+        }
+
+        @Override
+        public String visit(IsBooleanExp e, Env env) {
+                String result = "(boolean? ";
+                result += e.exp().accept(this, env);
+                return result + ")";
+        }
+
+        @Override
+        public String visit(IsNullExp e, Env env) {
+                String result = "(null? ";
+                result += e.exp().accept(this, env);
+                return result + ")";
+        }
 		
 		public String visit(AST.LetrecExp e, Env env) {
 			String result = "(letrec (";
