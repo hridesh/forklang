@@ -1,7 +1,9 @@
 package forklang;
 import java.io.IOException;
 
-import forklang.AST.*;
+import forklang.Env;
+import forklang.Value;
+import forklang.AST.Program;
 
 /**
  * This main class implements the Read-Eval-Print-Loop of the interpreter with
@@ -13,7 +15,7 @@ import forklang.AST.*;
 public class Interpreter {
 	public static void main(String[] args) {
 		System.out.println("ForkLang: Type a program to evaluate and press the enter key,\n" + 
-				"e.g. (ref 342) \n" + 
+				"e.g. (fork (+ 300 42) (+ 300 42)) \n" + 
 				"or try (deref (ref 342)) \n" +
 				"or try (let ((class (ref 342))) (deref class)) \n" +
 				"or try (let ((class (ref 342))) (set! class 541)) \n" + 
@@ -22,18 +24,20 @@ public class Interpreter {
 		Reader reader = new Reader();
 		Evaluator eval = new Evaluator(reader);
 		Printer printer = new Printer();
-		try {
-			while (true) { // Read-Eval-Print-Loop (also known as REPL)
-				Program p = reader.read();
-				try {
-					Value val = eval.valueOf(p);
-					printer.print(val);
-				} catch (Env.LookupException e) {
-					printer.print(e);
-				}
+		REPL: while (true) { // Read-Eval-Print-Loop (also known as REPL)
+			Program p = null;
+			try {
+				p = reader.read();
+				if(p._e == null) continue REPL;
+				Value val = eval.valueOf(p);
+				printer.print(val);
+			} catch (Env.LookupException e) {
+				printer.print(e);
+			} catch (IOException e) {
+				System.out.println("Error reading input:" + e.getMessage());
+			} catch (NullPointerException e) {
+				System.out.println("Error:" + e.getMessage());
 			}
-		} catch (IOException e) {
-			System.out.println("Error reading input.");
 		}
 	}
 }
