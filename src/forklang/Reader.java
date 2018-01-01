@@ -3,6 +3,7 @@ package forklang;
 import org.antlr.v4.runtime.Lexer;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -32,10 +33,7 @@ public class Reader {
 		return new ForkLangParser(s);
 	}
 			
-	protected String getProgramDirectory() { 
-		String buildDir = "build" + java.io.File.separatorChar + "forklang" + java.io.File.separatorChar + "examples" + java.io.File.separatorChar;
-		return buildDir; 
-	}
+	protected String getProgramDirectory() { return "build"+File.separator+"forklang"+File.separator+"examples"+File.separator; }
 	
 	public static String readFile(String fileName) throws IOException {
 		try (BufferedReader br = new BufferedReader(
