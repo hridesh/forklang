@@ -49,8 +49,8 @@
 	(lambda ()
 		(seq2 
 			(fork 
-				(seq4 (withdraw A 99) (withdraw B 99)(deposit A 99)(deposit B 99))
-				(seq4 (withdraw B 101) (withdraw A 101)(deposit B 101)(deposit A 101))
+				(seq4 (withdraw A 99) (withdraw B 99) (deposit A 99) (deposit B 99))
+				(seq4 (withdraw B 101) (withdraw A 101) (deposit B 101) (deposit A 101))
 			)
 			(list (getbalance A) (getbalance B))
 		)
