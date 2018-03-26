@@ -450,9 +450,9 @@ public class Evaluator implements Visitor<Value> {
 			return new Value.DynamicError("Non-reference values cannot be unlocked  in expression " +  ts.visit(e, env));
         Value.RefVal loc = (Value.RefVal) result;
         try{
-        	loc.unlock();
+        		loc.unlock();
         } catch(IllegalMonitorStateException ex){
-        	return new Value.DynamicError("Lock held by another thread " +  ts.visit(e, env));
+        		return new Value.DynamicError("Lock held by another thread " +  ts.visit(e, env));
         }
 		return loc;
 	}
