@@ -35,9 +35,14 @@
 	)
 )
 
-(fork 
-	(lock12 factorial 2) 
-	(lock21 factorial 3)
+(define lockit
+	(lambda ()
+		(fork 
+			(lock12 factorial 2) 
+			(lock21 factorial 3)
+		)
+	)
 )
+
 
 
