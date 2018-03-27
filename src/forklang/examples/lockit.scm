@@ -35,6 +35,9 @@
 	)
 )
 
-(fork (lock12 factorial 2) (lock21 factorial 3))
+(fork 
+	(lock12 factorial 2) 
+	(lock21 factorial 3)
+)
 
 
