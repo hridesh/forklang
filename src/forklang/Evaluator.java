@@ -194,9 +194,12 @@ public class Evaluator implements Visitor<Value> {
 	
 	@Override
 	public Value visit(EqualExp e, Env env) { // New for funclang.
-		Value.NumVal first = (Value.NumVal) e.first_exp().accept(this, env);
-		Value.NumVal second = (Value.NumVal) e.second_exp().accept(this, env);
-		return new Value.BoolVal(first.v() == second.v());
+		Value first = (Value) e.first_exp().accept(this, env);
+		Value second = (Value) e.second_exp().accept(this, env);
+		return new Value.BoolVal(first.equals(second));
+		//Value.NumVal first = (Value.NumVal) e.first_exp().accept(this, env);
+		//Value.NumVal second = (Value.NumVal) e.second_exp().accept(this, env);
+		//return new Value.BoolVal(first.v() == second.v());
 	}
 
 	@Override
