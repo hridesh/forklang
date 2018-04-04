@@ -7,7 +7,7 @@ import forklang.AST.*;
 
 public interface Value {
 	public String tostring();
-
+	public boolean equals(Value v);
 
 	static class RefVal extends ReentrantLock implements Value { //New in the reflang
 		private static final long serialVersionUID = 1L;
@@ -17,6 +17,12 @@ public interface Value {
             return "loc:" + this._loc;
         }
         public int loc() { return _loc; }
+        public boolean equals(Value v) { 
+        		if(v instanceof RefVal) {
+        			return ((RefVal) v)._loc == this._loc;
+        		}
+        		return false;
+        }
     }
 	static class FunVal implements Value { //New in the funclang
 		private Env _env;
@@ -38,6 +44,11 @@ public interface Value {
 			result += _body.accept(new Printer.Formatter(), _env);
 			return result + ")";
 	    }
+        public boolean equals(Value v) { 
+    			if(v instanceof FunVal)
+    				return super.equals(v);
+    			return false;
+        }
 	}
 	static class NumVal implements Value {
 	    private double _val;
@@ -48,18 +59,36 @@ public interface Value {
 	    	if(tmp == _val) return "" + tmp;
 	    	return "" + _val; 
 	    }
+        public boolean equals(Value v) { 
+    			if(v instanceof NumVal) {
+        			return ((NumVal) v)._val == this._val;
+    			}
+    			return false;
+        }
 	}
 	static class BoolVal implements Value {
 		private boolean _val;
 	    public BoolVal(boolean v) { _val = v; } 
 	    public boolean v() { return _val; }
 	    public String tostring() { if(_val) return "#t"; return "#f"; }
+        public boolean equals(Value v) { 
+    			if(v instanceof BoolVal) {
+        			return ((BoolVal) v)._val == this._val;
+    			}
+    			return false;
+        }
 	}
 	static class StringVal implements Value {
 		private java.lang.String _val;
 	    public StringVal(String v) { _val = v; } 
 	    public String v() { return _val; }
 	    public java.lang.String tostring() { return "" + _val; }
+        public boolean equals(Value v) { 
+    			if(v instanceof StringVal) {
+        			return ((StringVal) v)._val.equals(_val);
+    			}
+    			return false;
+        }
 	}
 	static class PairVal implements Value {
 		protected Value _fst;
@@ -87,18 +116,37 @@ public interface Value {
 	    	}
 	    	return result + ")";
 	    }
+        public boolean equals(Value v) { 
+    			if(v instanceof PairVal)
+        			return ((PairVal) v)._fst.equals(_fst) && ((PairVal) v)._snd.equals(_snd);
+    			return false;
+        }
 	}
 	static class Null implements Value {
 		public Null() {}
 	    public String tostring() { return "()"; }
+        public boolean equals(Value v) { 
+    			if(v instanceof Null) return true;
+    			return false;
+        }
 	}
 	static class UnitVal implements Value {
 		public static final UnitVal v = new UnitVal();
 	    public String tostring() { return ""; }
+        public boolean equals(Value v) { 
+    			if(v instanceof UnitVal) return true; 
+    			return false;
+        }
 	}
 	static class DynamicError implements Value { 
 		private String message = "Unknown dynamic error.";
 		public DynamicError(String message) { this.message = message; }
 	    public String tostring() { return "" + message; }
+        public boolean equals(Value v) { 
+    			if(v instanceof DynamicError) {
+    				return ((DynamicError)v).message.equals(message);
+    			}
+    			return false;
+        }
 	}
 }
