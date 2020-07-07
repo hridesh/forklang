@@ -1,7 +1,6 @@
 package forklang;
 
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 
 import forklang.AST.*;
 
@@ -10,8 +9,7 @@ public interface Value {
 
 	public boolean equals(Value v);
 
-	static class RefVal extends ReentrantLock implements Value {
-		private static final long serialVersionUID = 1L;
+	static class RefVal implements Value {
 		private int _loc = -1;
 
 		public RefVal(int loc) {
@@ -31,6 +29,35 @@ public interface Value {
 				return ((RefVal) v)._loc == this._loc;
 			}
 			return false;
+		}
+		
+		/* Locking a memory location */ 
+		int _lockCount = 0; 
+		Thread _lockingThread = null; 
+		boolean _locked = false; 
+		
+		public synchronized void lock() {
+			Thread currentThread = Thread.currentThread();
+			wait: while (_locked && _lockingThread != currentThread)
+				try { 
+					wait(); 
+					} catch (InterruptedException e) {
+						continue wait;
+					}
+			_locked = true; 
+			_lockCount ++; 
+			_lockingThread = currentThread; 
+		}
+		
+		public synchronized void unlock() {
+			Thread currentThread = Thread.currentThread();
+			if(_lockingThread == currentThread) {
+				_lockCount--; 
+				if (_lockCount == 0) {
+					_locked = false;
+					notify();
+				}
+			}
 		}
 	}
 
