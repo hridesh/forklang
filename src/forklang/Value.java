@@ -30,29 +30,29 @@ public interface Value {
 			}
 			return false;
 		}
-		
-		/* Locking a memory location */ 
-		int _lockCount = 0; 
-		Thread _lockingThread = null; 
-		boolean _locked = false; 
-		
+
+		/* Locking a memory location */
+		int _lockCount = 0;
+		Thread _lockingThread = null;
+		boolean _locked = false;
+
 		public synchronized void lock() {
 			Thread currentThread = Thread.currentThread();
 			wait: while (_locked && _lockingThread != currentThread)
-				try { 
-					wait(); 
-					} catch (InterruptedException e) {
-						continue wait;
-					}
-			_locked = true; 
-			_lockCount ++; 
-			_lockingThread = currentThread; 
+				try {
+					wait();
+				} catch (InterruptedException e) {
+					continue wait;
+				}
+			_locked = true;
+			_lockCount++;
+			_lockingThread = currentThread;
 		}
-		
+
 		public synchronized void unlock() {
 			Thread currentThread = Thread.currentThread();
-			if(_lockingThread == currentThread) {
-				_lockCount--; 
+			if (_lockingThread == currentThread) {
+				_lockCount--;
 				if (_lockCount == 0) {
 					_locked = false;
 					notify();
