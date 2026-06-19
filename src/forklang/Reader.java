@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import forklang.AST.*;
 import forklang.parser.*;
 
+@SuppressWarnings("deprecation")
 public class Reader {
 	
 	public Program read() throws IOException {
